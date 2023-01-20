@@ -1,0 +1,63 @@
+How to : 
+1-uboot and MLO from SD Card
+2-uImage and dtb from tftp 
+3-RootFS from NFS
+
+
+============================================
+First Steps
+
+1-Copy the MLO ,SPL and UBoot to SD Card in BOOT section
+
+2-
+-Create directory  "/var/lib/tftpboot"
+-Copy both uImage and dtb in tftpboot directory
+
+3-
+-Create directory "/srv/nfs/bbb"
+-Copy the output from busybox [RFS] to bbb directory
+
+4-
+Run those commands
+-sudo exportfs -arv
+-sudo service nfs-kernel-server restart
+
+5-
+-In file "/etc/exports"
+Put this line
+/srv/nfs/bbb  192.168.7.2(rw,sync,no_root_squash,no_subtree_check)
+
+6-Make sure static ip is settled and in Network settings
+-In file "/etc/network/interface"
+
+auto enp0s3
+iface  enp0s3  inet static
+address 192.168.7.1
+netmask 255.255.255.0
+network 192.168.7.0
+gateway 192.253.7.1
+dns-nameservers 8.8.8.8
+
+-Restart networking [sudo /etc/init.d/networking restart]
+
+7-Make sure VM network is bridged and Family Controller
+
+==============================================
+While booting , stop the uboot and run the commands at the prompt
+
+setenv console ttyO0,115200n8
+setenv ipaddr 192.168.7.2
+setenv serverip 192.168.7.1
+setenv loadramfsaddr 0x88080000
+setenv rootpath /srv/nfs/bbb,nfsvers=3,tcp ip=dhcp,nolock,wsize=1024,rsize=1024,rootwait rootdelay=5
+tftpboot ${loadaddr} uImage; tftpboot ${fdtaddr} am335x-boneblack.dtb
+setenv bootargs console=${console} root=/dev/nfs rw rootfstype=nfs ip=${ipaddr} nfsroot=${serverip}:${rootpath}
+setenv autoload no
+bootm ${loadaddr} - ${fdtaddr}
+
+
+
+
+
+
+

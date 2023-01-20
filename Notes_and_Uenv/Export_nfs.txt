@@ -1,0 +1,4 @@
+sudo exportfs -a
+sudo export -rv
+=>sudo exportfs -arv
+=>sudo service nfs-kernel-server restart
